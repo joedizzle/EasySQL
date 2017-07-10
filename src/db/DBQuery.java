@@ -19,12 +19,18 @@ import java.util.logging.Logger;
  */
 public class DBQuery 
 {
-    private final Connection connection;    
+    private Connection connection;    
+    private Statement stmt;
     private ResultSet rs;
     
     public DBQuery(Connection connection)
     {
-        this.connection = connection;      
+        this.connection = connection;     
+        try {
+            stmt = connection.createStatement();
+        } catch (SQLException ex) {
+            Logger.getLogger(DBQuery.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     public DBQuery readTable(DBStatement statement)
@@ -100,15 +106,9 @@ public class DBQuery
            
     private ResultSet executeQuery(String queryStmt)
     {
-        //Declare statement, resultSet and CachedResultSet as null
-        Statement stmt = null;
-        ResultSet resultSet = null;
-        
-        try {
-            
-            //Create statement
-            stmt = connection.createStatement();
- 
+        //Declare statement, resultSet and CachedResultSet as null       
+        ResultSet resultSet = null;        
+        try {            
             //Execute select (query) operation
             resultSet = stmt.executeQuery(queryStmt);
         }

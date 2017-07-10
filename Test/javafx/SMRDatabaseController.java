@@ -19,8 +19,10 @@ import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -47,6 +49,15 @@ public class SMRDatabaseController implements Initializable {
     @FXML
     VBox filterVBox;
     
+    @FXML
+    ToggleGroup typeToggle;
+    @FXML
+    ToggleGroup countryToggle;
+    @FXML
+    ToggleGroup statusToggle;
+    @FXML
+    ToggleGroup purposeToggle;
+    
     DBAccess database;
     
     @Override
@@ -55,19 +66,29 @@ public class SMRDatabaseController implements Initializable {
         database = new DBAccess("jdbc:derby:C:\\Users\\user\\Desktop\\Reactor Database\\smr\\data;create=true", "tom", "secret");
         System.out.println("Is connection successfull   : " +database.isLoginSuccessful());
         
-        SQLStatement parameter = new SQLStatement();
-        parameter.selectFrom("SMRDATABASE");
-        
-        //where
-        parameter.where("origin", "=", "China")
-                .or("origin", "=", "USA")
-                .or("origin", "=", "United States of America");
-              
-        DBQuery query = database.getQuery().readTable(parameter);
+        SQLStatement statement = getAll();        
+        DBQuery query = database.getQuery().readTable(statement);
         ArrayList<Parameter> allData = query.getAllRows(Parameter.class);
         
         UtilityFX.initTableColumn(new Parameter(), databaseView);
-        initTable(allData);        
+        initTable(allData);      
+        
+        typeToggle.selectedToggleProperty().addListener((ov, old_toggle, new_toggle) -> {
+            
+        });
+        
+        countryToggle.selectedToggleProperty().addListener((ov, old_toggle, new_toggle) -> {
+            RadioButton chk = (RadioButton)new_toggle.getToggleGroup().getSelectedToggle();
+            getCountry(chk.getText());
+        });
+        
+        statusToggle.selectedToggleProperty().addListener((ov, old_toggle, new_toggle) -> {
+            
+        });
+        
+        purposeToggle.selectedToggleProperty().addListener((ov, old_toggle, new_toggle) -> {
+            
+        });
          
     }    
        
@@ -97,5 +118,62 @@ public class SMRDatabaseController implements Initializable {
         sortedData.comparatorProperty().bind(databaseView.comparatorProperty());
         
         databaseView.setItems(sortedData);        
+    }
+    
+    private SQLStatement getAll()
+    {
+        SQLStatement statement = new SQLStatement();
+        statement.selectFrom("SMRDATABASE");
+        return statement;
+    }
+    
+    private void getCountry(String country)
+    {
+        SQLStatement statement = new SQLStatement();
+        statement.selectFrom("SMRDATABASE");
+        
+        switch(country)
+        {
+            case "US" :
+            {
+                statement.where("origin", "=", "USA")
+                .or("origin", "=", "United States of America");                
+                break;
+            }
+            case "Canada":
+            {
+                statement.where("origin", "=", "Canada");
+                break;
+            }
+            case "China":
+            {
+                statement.where("origin", "=", "China");
+                break;
+            }            
+            case "France":
+            {
+                statement.where("origin", "=", "France");
+                break;
+            }            
+            case "India":
+            {
+                statement.where("origin", "=", "India");
+                break;
+            }
+            case "Rep. of Korea":
+            {
+                statement.where("origin", "=", "Republic of Korea");
+                break;
+            }
+            case "Russia":
+            {
+                statement.where("origin", "=", "Russian Federation");
+                break;
+            }
+        }
+        
+        DBQuery query = database.getQuery().readTable(statement);
+        ArrayList<Parameter> allData = query.getAllRows(Parameter.class);        
+        initTable(allData);           
     }
 }
