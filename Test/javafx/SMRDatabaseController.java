@@ -5,17 +5,19 @@
  */
 package javafx;
 
-import db.DBAccess;
-import db.DBQuery;
-import db.dao.SQLStatement;
+import javafx.data.Parameter;
+import javafx.data.Reactor;
+import db.DBConnection;
+import static db.dsl.derby.DerbyFactory.create;
+import static db.dsl.derby.DerbyFactory.field;
+import db.dsl.derby.DerbyQuery;
 import db.fx.UtilityFX;
+import db.fx.propertyeditor.DBPropertyDataEditor;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Optional;
 import java.util.ResourceBundle;
-import javafx.collections.FXCollections;
+import static javafx.SMRQueryFactory.getAll;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -40,10 +42,15 @@ public class SMRDatabaseController implements Initializable {
      */
     
     @FXML
-    TableView databaseView;
+    TableView<Parameter> databaseView;  
     @FXML
-    TextField filterCountries;
+    TableView<Reactor> reactorView;
     
+    @FXML
+    TextField filterText;    
+    @FXML
+    ToggleGroup filterToggle;
+        
     @FXML
     HBox searchHBox;
     @FXML
@@ -53,127 +60,104 @@ public class SMRDatabaseController implements Initializable {
     ToggleGroup typeToggle;
     @FXML
     ToggleGroup countryToggle;
-    @FXML
-    ToggleGroup statusToggle;
-    @FXML
-    ToggleGroup purposeToggle;
+        
+    ObservableList<Parameter> allData;
+    ObservableList<Reactor> reactorData;
     
-    DBAccess database;
+    String filterString = "Country";
+    DBConnection connection;
     
     @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        // init variables        
-        database = new DBAccess("jdbc:derby:C:\\Users\\user\\Desktop\\Reactor Database\\smr\\data;create=true", "tom", "secret");
-        System.out.println("Is connection successfull   : " +database.isLoginSuccessful());
+    public void initialize(URL url, ResourceBundle rb) 
+    {
+        //Initialize table column      
+        UtilityFX.createColumns(new Parameter(), databaseView);   
+        UtilityFX.createColumns(new Reactor(), reactorView);
         
-        SQLStatement statement = getAll();        
-        DBQuery query = database.getQuery().readTable(statement);
-        ArrayList<Parameter> allData = query.getAllRows(Parameter.class);
+        //Establish database connection
+        connection = new DBConnection("jdbc:derby:C:\\Users\\user\\Desktop\\Reactor Database\\smr\\data;create=true", "tom", "secret");
         
-        UtilityFX.initTableColumn(new Parameter(), databaseView);
-        initTable(allData);      
+        initTable(getAll());    
         
         typeToggle.selectedToggleProperty().addListener((ov, old_toggle, new_toggle) -> {
-            
-        });
-        
-        countryToggle.selectedToggleProperty().addListener((ov, old_toggle, new_toggle) -> {
-            RadioButton chk = (RadioButton)new_toggle.getToggleGroup().getSelectedToggle();
-            getCountry(chk.getText());
-        });
-        
-        statusToggle.selectedToggleProperty().addListener((ov, old_toggle, new_toggle) -> {
-            
-        });
-        
-        purposeToggle.selectedToggleProperty().addListener((ov, old_toggle, new_toggle) -> {
-            
-        });
+            RadioButton chk = (RadioButton)new_toggle.getToggleGroup().getSelectedToggle();                
+            initTable(SMRQueryFactory.getType(chk.getText()).getSQLStatement());
+        });        
+        countryToggle.selectedToggleProperty().addListener((ov, old_toggle, new_toggle) -> 
+        {
+            RadioButton chk = (RadioButton)new_toggle.getToggleGroup().getSelectedToggle();                
+            initTable(SMRQueryFactory.getCountry(chk.getText()).getSQLStatement());
+        });        
          
     }    
+    
+    public void editReactor(ActionEvent event)
+    {
+        Parameter parameter = databaseView.getSelectionModel().getSelectedItem();        
+        
+        if(parameter != null) 
+        {
+            DBPropertyDataEditor<Parameter> dialog = new DBPropertyDataEditor(parameter, new javafx.dataeditor.ParameterEditorFactory());        
+            Optional<Parameter> optional = dialog.showAndWait();
+            if(optional.isPresent())                
+            {
+                DerbyQuery query = create()
+                    .update("SMRDATABASE")
+                    .set(optional.get())
+                    .where(field("name").equal(field(parameter.name.get())));
+                connection.executeUpdate(query.getSQLStatement());  
+                allData.set(allData.indexOf(parameter), optional.get());
+            }
+        }
+    }
+    
+    public void addReactor(ActionEvent event)
+    {
+        DBPropertyDataEditor<Parameter> dialog = new DBPropertyDataEditor(new Parameter(), new javafx.dataeditor.ParameterEditorFactory());        
+        Optional<Parameter> optional = dialog.showAndWait();
+        if(optional.isPresent())
+        {
+            Parameter parameter = optional.get();
+            if(parameter.name.get() == null || parameter.name.get().equals("")) return;
+                          
+            DerbyQuery query = create()
+                    .insertInto("SMRDATABASE", parameter);
+                        
+            connection.executeUpdate(query.getSQLStatement());      
+            allData.add(parameter);
+            
+            databaseView.scrollTo(parameter);
+            databaseView.getSelectionModel().select(parameter);
+        }
+    }
+    
+    public void deleteReactor(ActionEvent event)
+    {
+        int selectedIndex = databaseView.getSelectionModel().getSelectedIndex();
+        Parameter parameter = databaseView.getItems().get(selectedIndex);
+        if(parameter == null) return;
+        
+        DerbyQuery query = create()
+                .deleteFrom("SMRDATABASE")
+                .where(field("name").equal(field(parameter.name.get())));
+        
+        connection.executeUpdate(query.getSQLStatement());
+        allData.remove(parameter);
+    }
        
     public void close(ActionEvent event)
     {        
-        database.disconnect();
-        System.out.println("Is disconnection successfull: " +database.isDisconnectSuccessful());
+        connection.disconnect();        
         System.exit(0);
     }
-      
-    public void initTable(ArrayList<Parameter> parameterList)
-    {   
-        ObservableList<Parameter> data = FXCollections.observableArrayList(parameterList);
-        FilteredList<Parameter> filteredData = new FilteredList<>(data, p-> true);
-        
-        filterCountries.textProperty().addListener((observable, oldValue, newValue) -> {
-            filteredData.setPredicate(parameter -> {
-                if(newValue == null || newValue.isEmpty())
-                    return true;
-                
-                String lowerCaseFilter = newValue.toLowerCase();
-                return parameter.origin.get().toLowerCase().contains(lowerCaseFilter);
-            });
-        });
-        
-        SortedList<Parameter> sortedData = new SortedList<>(filteredData);
-        sortedData.comparatorProperty().bind(databaseView.comparatorProperty());
-        
-        databaseView.setItems(sortedData);        
-    }
     
-    private SQLStatement getAll()
-    {
-        SQLStatement statement = new SQLStatement();
-        statement.selectFrom("SMRDATABASE");
-        return statement;
-    }
-    
-    private void getCountry(String country)
-    {
-        SQLStatement statement = new SQLStatement();
-        statement.selectFrom("SMRDATABASE");
+    public void initTable(String query)
+    {           
+        //Over view column
+        allData = UtilityFX.getObservableArrayList(connection.executeAndFetch(query, Parameter.class));         
+        databaseView.setItems(allData);     
         
-        switch(country)
-        {
-            case "US" :
-            {
-                statement.where("origin", "=", "USA")
-                .or("origin", "=", "United States of America");                
-                break;
-            }
-            case "Canada":
-            {
-                statement.where("origin", "=", "Canada");
-                break;
-            }
-            case "China":
-            {
-                statement.where("origin", "=", "China");
-                break;
-            }            
-            case "France":
-            {
-                statement.where("origin", "=", "France");
-                break;
-            }            
-            case "India":
-            {
-                statement.where("origin", "=", "India");
-                break;
-            }
-            case "Rep. of Korea":
-            {
-                statement.where("origin", "=", "Republic of Korea");
-                break;
-            }
-            case "Russia":
-            {
-                statement.where("origin", "=", "Russian Federation");
-                break;
-            }
-        }
-        
-        DBQuery query = database.getQuery().readTable(statement);
-        ArrayList<Parameter> allData = query.getAllRows(Parameter.class);        
-        initTable(allData);           
-    }
+        reactorData = UtilityFX.getObservableArrayList(connection.executeAndFetch(query, Reactor.class));
+        reactorView.setItems(reactorData);
+    }      
 }

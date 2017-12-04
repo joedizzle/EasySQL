@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package javafx;
+package javafx.data;
 
 import db.DBData;
 import javafx.beans.property.DoubleProperty;
@@ -62,43 +62,43 @@ public class Parameter extends DBData
     public Parameter()
     {
         name = new SimpleStringProperty();    
-        technology  = new SimpleStringProperty();    
-        origin  = new SimpleStringProperty();   
-        reactorType  = new SimpleStringProperty();        
+        technology  = new SimpleStringProperty("-");    
+        origin  = new SimpleStringProperty("-");   
+        reactorType  = new SimpleStringProperty("-");        
         eCapacity = new SimpleDoubleProperty();
         tCapacity = new SimpleDoubleProperty();
         capacityFactor = new SimpleDoubleProperty();
         life = new SimpleIntegerProperty();
         footprint = new SimpleDoubleProperty();
-        coolant  = new SimpleStringProperty();    
-        moderator = new SimpleStringProperty();
-        primaryCirculation = new SimpleStringProperty();
+        coolant  = new SimpleStringProperty("-");    
+        moderator = new SimpleStringProperty("-");
+        primaryCirculation = new SimpleStringProperty("-");
         systemPressure = new SimpleDoubleProperty();
         coreInletTemperature = new SimpleDoubleProperty();
         coreExitTemperature = new SimpleDoubleProperty();
-        rcontrolMechanism = new SimpleStringProperty();
+        rcontrolMechanism = new SimpleStringProperty("-");
         calandriaHeight = new SimpleDoubleProperty();
         calandriaDiameter = new SimpleDoubleProperty();
         calandriaWeight = new SimpleDoubleProperty();
-        rcsConfiguration = new SimpleStringProperty();
-        powconversionProcess = new SimpleStringProperty();
-        fuelType = new SimpleStringProperty();
-        assemblyArray = new SimpleStringProperty();
+        rcsConfiguration = new SimpleStringProperty("-");
+        powconversionProcess = new SimpleStringProperty("-");
+        fuelType = new SimpleStringProperty("-");
+        assemblyArray = new SimpleStringProperty("-");
         faLength = new SimpleDoubleProperty();
         numFA = new SimpleIntegerProperty();
         faEnrichment = new SimpleDoubleProperty();
         faBurnup = new SimpleDoubleProperty();
         faCycle = new SimpleDoubleProperty();
-        cogenerationCapability = new SimpleStringProperty();
-        approachESS = new SimpleStringProperty();
+        cogenerationCapability = new SimpleStringProperty("-");
+        approachESS = new SimpleStringProperty("-");
         numTrains = new SimpleIntegerProperty();
         daysRefuellingOutage = new SimpleIntegerProperty();
-        distinguishingFeatures = new SimpleStringProperty();
+        distinguishingFeatures = new SimpleStringProperty("-");
         modules = new SimpleIntegerProperty();
         constructionDuration = new SimpleIntegerProperty();
         seismicDesign = new SimpleDoubleProperty();
         cdf = new SimpleDoubleProperty();
-        designStatus = new SimpleStringProperty();
-        reference = new SimpleStringProperty();
+        designStatus = new SimpleStringProperty("-");
+        reference = new SimpleStringProperty("-");
     }    
 }

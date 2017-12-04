@@ -6,6 +6,9 @@
 package simple;
 
 import db.DBData;
+import static db.dsl.derby.DerbyFactory.create;
+import static db.dsl.derby.DerbyFactory.field;
+import db.dsl.derby.DerbyQuery;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -16,12 +19,13 @@ import javafx.beans.property.StringProperty;
 public class TestCopyDBData {
     public static void main(String... args)
     {
-        SimpleParameter parameter1 = new SimpleParameter();
-        parameter1.name.setValue("Joe");
-        System.out.println(parameter1.name);
-        
-        SimpleParameter parameter2 = parameter1.copy();
-        System.out.println(parameter2.name);
+        SimpleParameter parameter = new SimpleParameter();
+        DerbyQuery query = create()
+                .update("SMRDATABASE")
+                .set(parameter)
+                .where(field("name").equal(field("josto")));
+        System.out.println(query.getSQLStatement());
+               
     }
     
     public static  class SimpleParameter extends DBData<SimpleParameter> {
@@ -31,9 +35,9 @@ public class TestCopyDBData {
 
         public SimpleParameter()
         {
-            name = new SimpleStringProperty();    
-            technology  = new SimpleStringProperty();    
-            origin  = new SimpleStringProperty();
+            name = new SimpleStringProperty("Josto");    
+            technology  = new SimpleStringProperty("Kubafu");    
+            origin  = new SimpleStringProperty("Lol");
         }
 }
 }

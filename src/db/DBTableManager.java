@@ -79,8 +79,9 @@ public class DBTableManager
     public void removeAllTables()
     {
         ArrayList<String> dbTables = allTablesList();
-        for(String name : dbTables)
+        dbTables.forEach((name) -> {
             removeTable(name);
+        });
     }
     
     public void createTable(String tableName, String tableIDs)

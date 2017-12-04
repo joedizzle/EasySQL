@@ -33,17 +33,7 @@ public class DBAccess {
             Logger.getLogger(DBAccess.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public boolean isLoginSuccessful()
-    {
-        return connection != null;
-    }
-    
-    public boolean isDisconnectSuccessful()
-    {
-        return connection == null;
-    }
-    
+        
     public boolean disconnect()
     {
         try 

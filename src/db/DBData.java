@@ -112,5 +112,20 @@ public abstract class DBData<T extends DBData>
                 fieldNameList.add(field.getName());
         }
         return fieldNameList;
-    }       
+    }   
+    
+    public int size()
+    {
+        return getFields().length;
+    }
+    
+    public Object[] getValues()
+    {
+        Field[] fields = getFields();
+        Object[] valueArrays = new Object[fields.length];
+                
+        for(int i = 0; i<size(); i++)
+            valueArrays[i] = getObservableValue(fields[i]).getValue();
+        return valueArrays;
+    }
 }

@@ -1,9 +1,10 @@
 package simple;
 
-import db.DBAccess;
+import db.DBConnection;
 import db.DBData;
-import db.DBQuery;
-import db.dao.SQLStatement;
+import static db.dsl.derby.DerbyFactory.create;
+import static db.dsl.derby.DerbyFactory.field;
+import db.dsl.derby.DerbyQuery;
 import java.util.ArrayList;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -20,28 +21,25 @@ import javafx.beans.property.StringProperty;
  */
 public class Test {
     public static void main(String... args)
-    {
-        DBAccess database = new DBAccess("jdbc:derby:C:\\Users\\user\\Desktop\\Reactor Database\\smr\\data;create=true", "tom", "secret");
-        System.out.println("Is connection successfull   : " +database.isLoginSuccessful());
-              
+    {        
+        DBConnection connection = new DBConnection("jdbc:derby:C:\\Users\\user\\Desktop\\Reactor Database\\smr\\data;create=true", "tom", "secret");
+             
         //DBQuery query = database.getQuery("SMRDATABASE").readTable();
         //ArrayList<Parameter> parameters = query.getAllRows(Parameter.class);
         //System.out.println(parameters);
         //DBTableManager manager = database.getTableManager();
         //System.out.println(manager.allTablesString());
         
-        SQLStatement parameter = new SQLStatement();
-        parameter.selectFrom("SMRDATABASE")
-                .where("name", "=", "mPower")
-                .or("name", "=", "SMART")
-                .or("name", "=", "NuScale");
+        DerbyQuery statement = create()
+                .selectAll()
+                .from("SMRDATABASE")
+                .where(field("name").equal(field("mPower")))
+                .or(field("name").equal(field("SMART")))
+                .or(field("name").equal(field("NuScale")));        
         
-        DBQuery query = database.getQuery().readTable(parameter);
-        ArrayList<NameSMR> allData = query.getAllRows(NameSMR.class);
-        System.out.println(allData);
-                   
-        database.disconnect();
-        System.out.println("Is disconnection successfull: " +database.isDisconnectSuccessful());
+        ArrayList<NameSMR> allData = connection.executeAndFetch(statement.getSQLStatement(), NameSMR.class);
+        connection.disconnect();
+        System.out.println(allData);                   
     }
     
     public static class NameSMR extends DBData

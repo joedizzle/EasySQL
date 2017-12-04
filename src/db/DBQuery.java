@@ -39,6 +39,13 @@ public class DBQuery
         query.rs = executeQuery(statement.toString());
         return query;
     }
+    
+    public DBQuery readTable(String statement)
+    {
+        DBQuery query = new DBQuery(connection);
+        query.rs = executeQuery(statement);
+        return query;
+    }
         
     public boolean next()
     {
